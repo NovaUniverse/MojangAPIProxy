@@ -60,6 +60,7 @@ export default class MojangAPIProxyServer {
 				const result = this.cache.get<CachedUsernameToUUIDData>(cacheKey);
 				if (result.found) {
 					console.log("Fetched uuid of " + username + " from cache");
+					res.header("Content-Type", 'application/json');
 					res.status(200).send(JSON.stringify(result.data, null, 4));
 					return;
 				} else {
