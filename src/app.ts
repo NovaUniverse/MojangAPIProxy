@@ -9,7 +9,7 @@ if (!FS.existsSync("./config")) {
 }
 
 if (!FS.existsSync("./config/config.json")) {
-    console.log("Creating default configuration");
+	console.log("Creating default configuration");
 	let defaultConfig: IConfiguration = {
 		port: 80,
 		cache: {
