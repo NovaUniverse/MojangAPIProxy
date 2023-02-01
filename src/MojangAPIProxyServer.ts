@@ -15,6 +15,9 @@ export default class MojangAPIProxyServer {
 	private express: Express.Express;
 	private http: HTTP.Server;
 	private cache: NodeCache;
+	private mojangAPIProfileRequestRateLimit: number;
+
+	private profileRequestCounter: number;
 
 	constructor(config: IConfiguration) {
 		console.log("Starting mojang api proxy instance...");
@@ -26,6 +29,13 @@ export default class MojangAPIProxyServer {
 		this.express.use('/', Express.static(__dirname + '/../index'));
 		this.express.use(setCorsHeaders);
 		this.express.use(require("morgan")("combined"));
+
+		this.profileRequestCounter = 0;
+		this.mojangAPIProfileRequestRateLimit = config.max_mojang_profile_requests_per_minute;
+
+		setInterval(() => {
+			this.profileRequestCounter = 0;
+		}, 1000 * 60);
 
 		console.log("Cache TTL: " + config.cache.ttl);
 		console.log("Cache checkperiod: " + config.cache.checkperiod);
@@ -64,11 +74,9 @@ export default class MojangAPIProxyServer {
 			try {
 				response = await axios.get("https://api.mojang.com/users/profiles/minecraft/" + username, { validateStatus: this.validateResponse });
 			} catch (error) {
-				res.status(500).send("500: Internal server error");
+				res.status(500).send("500: An error occured while trying to contact the mojang servers");
 				return;
 			}
-
-			console.log("Resp: " + response.status);
 
 			if (response.status == 404) {
 				const cacheData: CachedUsernameToUUIDData = {
@@ -98,6 +106,7 @@ export default class MojangAPIProxyServer {
 		});
 
 		this.express.get("/profile/:uuid", async (req: Express.Request, res: Express.Response) => {
+			console.log("PRC: " + this.profileRequestCounter);
 			let uuid: string = "" + req.params.uuid;
 
 			uuid = uuid.toLocaleLowerCase();
@@ -127,12 +136,19 @@ export default class MojangAPIProxyServer {
 				}
 			}
 
+			if (this.profileRequestCounter >= this.mojangAPIProfileRequestRateLimit) {
+				console.log("Profile request counter is at " + this.profileRequestCounter + ". Rate limiting to prevent us from getting banned from the mojang api");
+				res.status(429).send("429: Profile request limit reached. Try again in 1 minute");
+				return;
+			}
+
 			var response = null;
 
 			try {
+				this.profileRequestCounter++;
 				response = await axios.get("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid, { validateStatus: this.validateResponse });
 			} catch (error) {
-				res.status(500).send("500: Internal server error");
+				res.status(500).send("500: An error occured while trying to contact the mojang servers");
 				return;
 			}
 

@@ -15,7 +15,8 @@ if (!FS.existsSync("./config/config.json")) {
 		cache: {
 			ttl: 300,
 			checkperiod: 30
-		}
+		},
+		max_mojang_profile_requests_per_minute: 180
 	}
 	FS.writeFileSync("./config/config.json", JSON.stringify(defaultConfig, null, 4), 'utf8');
 }

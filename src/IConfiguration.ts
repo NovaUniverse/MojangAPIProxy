@@ -1,6 +1,7 @@
 export default interface IConfiguration {
 	port: number,
-	cache: ICahceConfiguration
+	cache: ICahceConfiguration,
+	max_mojang_profile_requests_per_minute: number
 }
 
 export interface ICahceConfiguration {
