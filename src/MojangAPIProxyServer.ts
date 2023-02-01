@@ -106,7 +106,6 @@ export default class MojangAPIProxyServer {
 		});
 
 		this.express.get("/profile/:uuid", async (req: Express.Request, res: Express.Response) => {
-			console.log("PRC: " + this.profileRequestCounter);
 			let uuid: string = "" + req.params.uuid;
 
 			uuid = uuid.toLocaleLowerCase();
