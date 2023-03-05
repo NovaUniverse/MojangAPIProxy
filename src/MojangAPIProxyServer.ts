@@ -79,7 +79,7 @@ export default class MojangAPIProxyServer {
 				return;
 			}
 
-			if (response.status == 404) {
+			if (response.status == 404 ||response.status == 204) {
 				const cacheData: CachedUsernameToUUIDData = {
 					data: null,
 					found: false
